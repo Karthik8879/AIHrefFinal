@@ -3,6 +3,7 @@ import Link from "next/link";
 export default function Home() {
   const sampleSites = [
     { id: 'greplus', name: 'GRE Plus', description: 'GRE preparation platform' },
+    { id: 'test-site-1', name: 'Test Site 1', description: 'Demo analytics with dummy data' },
     { id: 'novareaders', name: 'Nova Readers', description: 'Reading analytics platform' },
     { id: 'example', name: 'Example Site', description: 'Sample analytics dashboard' }
   ];
@@ -67,6 +68,25 @@ export default function Home() {
                 </div>
               </Link>
             ))}
+          </div>
+        </div>
+
+        {/* Test Analytics Section */}
+        <div className="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-purple-900 mb-3">🧪 Test Analytics with Dummy Data</h3>
+            <p className="text-purple-800 mb-4">
+              Want to see how the analytics look with sample data? Check out our test dashboard!
+            </p>
+            <Link
+              href="/test-analytics"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              🚀 Go to Test Analytics
+              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
           </div>
         </div>
 
