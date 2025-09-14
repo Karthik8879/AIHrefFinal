@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/analytics")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = {"http://localhost:3000", "http://127.0.0.1:3000"})
 public class AnalyticsController {
     
     private final AnalyticsService analyticsService;
