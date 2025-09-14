@@ -108,8 +108,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+      <div className="w-full p-4">
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-start">
@@ -186,7 +186,7 @@ export default function DashboardPage() {
             <span className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full mr-3"></span>
             Traffic Summary
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300">
               <div className="flex items-center justify-between">
                 <div>
@@ -255,7 +255,7 @@ export default function DashboardPage() {
             <span className="w-1 h-8 bg-gradient-to-b from-green-500 to-blue-500 rounded-full mr-3"></span>
             Performance Over Time
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
               <div className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">{analytics.avgVisitsPerDay.toFixed(2)}</div>
               <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">Avg. Visits / Day</div>
@@ -289,7 +289,7 @@ export default function DashboardPage() {
             Time Series Analytics
           </h2>
 
-          <div className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Analytics Trends Chart */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
               <AnalyticsTrendsChart
@@ -307,7 +307,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Individual Time Series Charts */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
                 <TimeSeriesChart
                   data={dailySnapshots.length > 0 ? aggregateDailySnapshots(dailySnapshots) : []}
@@ -336,7 +336,7 @@ export default function DashboardPage() {
             Analytics Visualization
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             {/* Visitor Trends Chart */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between mb-6">
@@ -387,7 +387,7 @@ export default function DashboardPage() {
             <span className="w-1 h-8 bg-gradient-to-b from-yellow-500 to-orange-500 rounded-full mr-3"></span>
             Highest Performing Segments
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
               <div className="flex items-center justify-between">
                 <div>

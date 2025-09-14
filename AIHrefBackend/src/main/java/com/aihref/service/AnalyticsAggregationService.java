@@ -26,57 +26,58 @@ public class AnalyticsAggregationService {
         log.info("Starting daily analytics aggregation at {}", LocalDateTime.now());
         
         try {
-            // Get yesterday's date (since we run at midnight)
-            LocalDate yesterday = LocalDate.now().minusDays(1);
-            LocalDateTime startOfDay = yesterday.atStartOfDay();
-            LocalDateTime endOfDay = yesterday.atTime(23, 59, 59);
+            // Get all raw events (not just yesterday's)
+            List<RawEvent> allRawEvents = rawEventRepository.findAll();
+            log.info("Found {} total raw events for aggregation", allRawEvents.size());
             
-            log.info("Aggregating data for date: {}", yesterday);
-            
-            // Get all raw events for yesterday
-            List<RawEvent> rawEvents = rawEventRepository.findByTsBetween(startOfDay, endOfDay);
-            
-            // If no events found with timestamps, get all events (including null timestamps)
-            if (rawEvents.isEmpty()) {
-                log.info("No events found with timestamps, fetching all events for aggregation");
-                rawEvents = rawEventRepository.findAll();
-            }
-            log.info("Found {} raw events for date {}", rawEvents.size(), yesterday);
-            
-            if (rawEvents.isEmpty()) {
-                log.info("No raw events found for date {}, skipping aggregation", yesterday);
+            if (allRawEvents.isEmpty()) {
+                log.info("No raw events found, skipping aggregation");
                 return;
             }
             
-            // Group events by siteId
-            Map<String, List<RawEvent>> eventsBySite = rawEvents.stream()
-                    .collect(Collectors.groupingBy(RawEvent::getSiteId));
+            // Group events by siteId and date
+            Map<String, Map<LocalDate, List<RawEvent>>> eventsBySiteAndDate = allRawEvents.stream()
+                    .filter(event -> event.getTs() != null) // Only process events with timestamps
+                    .collect(Collectors.groupingBy(
+                            RawEvent::getSiteId,
+                            Collectors.groupingBy(event -> event.getTs().toLocalDate())
+                    ));
             
-            log.info("Processing {} sites: {}", eventsBySite.size(), eventsBySite.keySet());
+            log.info("Processing {} sites with data", eventsBySiteAndDate.size());
             
-            // Process each site
-            for (Map.Entry<String, List<RawEvent>> entry : eventsBySite.entrySet()) {
-                String siteId = entry.getKey();
-                List<RawEvent> siteEvents = entry.getValue();
+            int totalSnapshotsCreated = 0;
+            
+            // Process each site and date combination
+            for (Map.Entry<String, Map<LocalDate, List<RawEvent>>> siteEntry : eventsBySiteAndDate.entrySet()) {
+                String siteId = siteEntry.getKey();
+                Map<LocalDate, List<RawEvent>> eventsByDate = siteEntry.getValue();
                 
-                log.info("Processing siteId: {} with {} events", siteId, siteEvents.size());
+                log.info("Processing siteId: {} with {} different dates", siteId, eventsByDate.size());
                 
-                // Check if snapshot already exists for this site and date
-                DailySnapshot existingSnapshot = dailySnapshotRepository.findBySiteIdAndDate(siteId, yesterday);
-                if (existingSnapshot != null) {
-                    log.info("Snapshot already exists for siteId: {} and date: {}, skipping", siteId, yesterday);
-                    continue;
+                for (Map.Entry<LocalDate, List<RawEvent>> dateEntry : eventsByDate.entrySet()) {
+                    LocalDate date = dateEntry.getKey();
+                    List<RawEvent> siteEvents = dateEntry.getValue();
+                    
+                    log.info("Processing siteId: {} for date: {} with {} events", siteId, date, siteEvents.size());
+                    
+                    // Check if snapshot already exists for this site and date
+                    DailySnapshot existingSnapshot = dailySnapshotRepository.findBySiteIdAndDate(siteId, date);
+                    if (existingSnapshot != null) {
+                        log.info("Snapshot already exists for siteId: {} and date: {}, skipping", siteId, date);
+                        continue;
+                    }
+                    
+                    // Create daily snapshot
+                    DailySnapshot snapshot = createDailySnapshot(siteId, date, siteEvents);
+                    dailySnapshotRepository.save(snapshot);
+                    totalSnapshotsCreated++;
+                    
+                    log.info("Successfully created snapshot for siteId: {} date: {} with {} visitors and {} pageviews", 
+                            siteId, date, snapshot.getVisitors(), snapshot.getPageviews());
                 }
-                
-                // Create daily snapshot
-                DailySnapshot snapshot = createDailySnapshot(siteId, yesterday, siteEvents);
-                dailySnapshotRepository.save(snapshot);
-                
-                log.info("Successfully created snapshot for siteId: {} with {} visitors and {} pageviews", 
-                        siteId, snapshot.getVisitors(), snapshot.getPageviews());
             }
             
-            log.info("Daily analytics aggregation completed successfully");
+            log.info("Daily analytics aggregation completed successfully. Created {} new snapshots", totalSnapshotsCreated);
             
         } catch (Exception e) {
             log.error("Error during daily analytics aggregation", e);
