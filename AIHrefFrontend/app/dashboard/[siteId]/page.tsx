@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { fetchAnalyticsSummary, AnalyticsSummary } from '@/lib/analytics';
+import { fetchAnalyticsSummary, fetchRealTimeAnalytics, triggerManualAggregation, AnalyticsSummary } from '@/lib/analytics';
 import MetricCard from '@/components/MetricCard';
 import VisitorsChart from '@/components/VisitorsChart';
 import TopPagesChart from '@/components/TopPagesChart';
@@ -18,23 +18,48 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRange, setSelectedRange] = useState<'7d' | '30d' | 'all'>('7d');
+  const [dataSource, setDataSource] = useState<'aggregated' | 'realtime'>('aggregated');
+  const [isAggregating, setIsAggregating] = useState(false);
+  const [aggregationMessage, setAggregationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (siteId) {
       loadAnalytics();
     }
-  }, [siteId, selectedRange]);
+  }, [siteId, selectedRange, dataSource]);
 
   const loadAnalytics = async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchAnalyticsSummary(siteId, selectedRange);
+      const data = dataSource === 'realtime'
+        ? await fetchRealTimeAnalytics(siteId, selectedRange)
+        : await fetchAnalyticsSummary(siteId, selectedRange);
       setAnalytics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load analytics');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleManualAggregation = async () => {
+    try {
+      setIsAggregating(true);
+      setAggregationMessage(null);
+      setError(null);
+
+      const result = await triggerManualAggregation();
+      setAggregationMessage(result.message);
+
+      // Refresh data after successful aggregation
+      if (result.status === 'success') {
+        await loadAnalytics();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to trigger aggregation');
+    } finally {
+      setIsAggregating(false);
     }
   };
 
@@ -62,20 +87,87 @@ export default function DashboardPage() {
             Site: <span className="font-semibold">{siteId}</span>
           </p>
 
-          {/* Range Selector */}
-          <div className="mt-4 flex space-x-2">
-            {(['7d', '30d', 'all'] as const).map((range) => (
+          {/* Controls */}
+          <div className="mt-4 space-y-4">
+            {/* Data Source Selector */}
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-gray-700">Data Source:</span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setDataSource('aggregated')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dataSource === 'aggregated'
+                      ? 'bg-green-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                >
+                  📊 Aggregated (Daily Snapshots)
+                </button>
+                <button
+                  onClick={() => setDataSource('realtime')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${dataSource === 'realtime'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                    }`}
+                >
+                  ⚡ Real-time (Raw Events)
+                </button>
+              </div>
+            </div>
+
+            {/* Range Selector */}
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-gray-700">Time Range:</span>
+              <div className="flex space-x-2">
+                {(['7d', '30d', 'all'] as const).map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setSelectedRange(range)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedRange === range
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                      }`}
+                  >
+                    {range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'All time'}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Manual Aggregation Button */}
+            <div className="flex items-center space-x-4">
               <button
-                key={range}
-                onClick={() => setSelectedRange(range)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedRange === range
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                onClick={handleManualAggregation}
+                disabled={isAggregating}
+                className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${isAggregating
+                    ? 'bg-gray-400 text-white cursor-not-allowed'
+                    : 'bg-orange-600 text-white hover:bg-orange-700'
                   }`}
               >
-                {range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'All time'}
+                {isAggregating ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                    Running Cron Job...
+                  </>
+                ) : (
+                  <>
+                    🔄 Run Manual Aggregation
+                  </>
+                )}
               </button>
-            ))}
+              <span className="text-xs text-gray-500">
+                (Replicates the midnight scheduled job)
+              </span>
+            </div>
+
+            {/* Aggregation Message */}
+            {aggregationMessage && (
+              <div className={`p-3 rounded-lg text-sm ${aggregationMessage.includes('success')
+                  ? 'bg-green-100 text-green-800 border border-green-200'
+                  : 'bg-red-100 text-red-800 border border-red-200'
+                }`}>
+                {aggregationMessage}
+              </div>
+            )}
           </div>
         </div>
 
