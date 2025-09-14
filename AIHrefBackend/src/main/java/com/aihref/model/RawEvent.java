@@ -21,18 +21,27 @@ public class RawEvent {
     @Field("siteId")
     private String siteId;
     
+    @Field("eventType")
+    private String eventType;
+    
+    @Field("anonId")
+    private String anonId;
+    
     @Field("url")
     private String url;
     
     @Field("referrer")
     private String referrer;
     
+    @Field("userAgent")
+    private String userAgent;
+    
+    @Field("ts")
+    private LocalDateTime ts;
+    
     @Field("country")
     private String country;
     
-    @Field("timestamp")
-    private LocalDateTime timestamp;
-    
-    @Field("anonId")
-    private String anonId;
+    @Field("city")
+    private String city;
 }

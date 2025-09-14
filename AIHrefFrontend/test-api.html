@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>API Test</title>
+</head>
+
+<body>
+  <h1>API Test</h1>
+  <div id="results"></div>
+
+  <script>
+    async function testAPI() {
+      const resultsDiv = document.getElementById('results');
+
+      try {
+        // Test enhanced analytics
+        console.log('Testing enhanced analytics...');
+        const analyticsResponse = await fetch('http://localhost:8080/api/analytics/enhanced?siteId=greplus&range=7d');
+        const analyticsData = await analyticsResponse.json();
+        console.log('Enhanced analytics:', analyticsData);
+        resultsDiv.innerHTML += '<h2>Enhanced Analytics:</h2><pre>' + JSON.stringify(analyticsData, null, 2) + '</pre>';
+
+        // Test daily snapshots
+        console.log('Testing daily snapshots...');
+        const snapshotsResponse = await fetch('http://localhost:8080/api/analytics/daily-snapshots?siteId=greplus&range=7d');
+        const snapshotsData = await snapshotsResponse.json();
+        console.log('Daily snapshots:', snapshotsData);
+        resultsDiv.innerHTML += '<h2>Daily Snapshots:</h2><pre>' + JSON.stringify(snapshotsData, null, 2) + '</pre>';
+
+        // Test raw events
+        console.log('Testing raw events...');
+        const eventsResponse = await fetch('http://localhost:8080/api/analytics/raw-events?siteId=greplus&range=7d');
+        const eventsData = await eventsResponse.json();
+        console.log('Raw events:', eventsData);
+        resultsDiv.innerHTML += '<h2>Raw Events:</h2><pre>' + JSON.stringify(eventsData, null, 2) + '</pre>';
+
+      } catch (error) {
+        console.error('Error:', error);
+        resultsDiv.innerHTML += '<h2>Error:</h2><pre>' + error.message + '</pre>';
+      }
+    }
+
+    // Run test when page loads
+    testAPI();
+  </script>
+</body>
+
+</html>

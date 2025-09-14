@@ -40,9 +40,9 @@ public class EnhancedAnalyticsService {
             
             // Filter events by date range if they have timestamps
             List<RawEvent> filteredEvents = allEvents.stream()
-                    .filter(event -> event.getTimestamp() == null || 
-                            (!event.getTimestamp().toLocalDate().isBefore(startDate) && 
-                             !event.getTimestamp().toLocalDate().isAfter(endDate)))
+                    .filter(event -> event.getTs() == null || 
+                            (!event.getTs().toLocalDate().isBefore(startDate) && 
+                             !event.getTs().toLocalDate().isAfter(endDate)))
                     .collect(Collectors.toList());
             
             log.info("Found {} events for siteId: {} in range: {}", filteredEvents.size(), siteId, range);
@@ -67,23 +67,23 @@ public class EnhancedAnalyticsService {
                 .count();
         
         long todayVisitors = allEvents.stream()
-                .filter(event -> event.getTimestamp() != null && 
-                        event.getTimestamp().toLocalDate().equals(LocalDate.now()))
+                .filter(event -> event.getTs() != null && 
+                        event.getTs().toLocalDate().equals(LocalDate.now()))
                 .map(RawEvent::getAnonId)
                 .distinct()
                 .count();
         
         long thisWeekVisitors = allEvents.stream()
-                .filter(event -> event.getTimestamp() != null && 
-                        isInCurrentWeek(event.getTimestamp().toLocalDate()))
+                .filter(event -> event.getTs() != null && 
+                        isInCurrentWeek(event.getTs().toLocalDate()))
                 .map(RawEvent::getAnonId)
                 .distinct()
                 .count();
         
         long thisMonthVisitors = allEvents.stream()
-                .filter(event -> event.getTimestamp() != null && 
-                        event.getTimestamp().toLocalDate().getMonth() == LocalDate.now().getMonth() &&
-                        event.getTimestamp().toLocalDate().getYear() == LocalDate.now().getYear())
+                .filter(event -> event.getTs() != null && 
+                        event.getTs().toLocalDate().getMonth() == LocalDate.now().getMonth() &&
+                        event.getTs().toLocalDate().getYear() == LocalDate.now().getYear())
                 .map(RawEvent::getAnonId)
                 .distinct()
                 .count();
@@ -93,8 +93,8 @@ public class EnhancedAnalyticsService {
                 .collect(Collectors.groupingBy(RawEvent::getAnonId, Collectors.counting()));
         
         long repeatVisitorsToday = allEvents.stream()
-                .filter(event -> event.getTimestamp() != null && 
-                        event.getTimestamp().toLocalDate().equals(LocalDate.now()))
+                .filter(event -> event.getTs() != null && 
+                        event.getTs().toLocalDate().equals(LocalDate.now()))
                 .map(RawEvent::getAnonId)
                 .filter(anonId -> visitorCounts.getOrDefault(anonId, 0L) > 1)
                 .distinct()
@@ -102,9 +102,9 @@ public class EnhancedAnalyticsService {
         
         // Peak Visit Day
         Map<LocalDate, Long> dailyVisits = filteredEvents.stream()
-                .filter(event -> event.getTimestamp() != null)
+                .filter(event -> event.getTs() != null)
                 .collect(Collectors.groupingBy(
-                        event -> event.getTimestamp().toLocalDate(),
+                        event -> event.getTs().toLocalDate(),
                         Collectors.counting()
                 ));
         
@@ -184,8 +184,8 @@ public class EnhancedAnalyticsService {
                 .sorted(Map.Entry.comparingByKey())
                 .map(entry -> {
                     long visitors = filteredEvents.stream()
-                            .filter(event -> event.getTimestamp() != null && 
-                                    event.getTimestamp().toLocalDate().equals(entry.getKey()))
+                            .filter(event -> event.getTs() != null && 
+                                    event.getTs().toLocalDate().equals(entry.getKey()))
                             .map(RawEvent::getAnonId)
                             .distinct()
                             .count();

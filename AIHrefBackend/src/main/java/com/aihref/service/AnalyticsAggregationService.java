@@ -34,7 +34,7 @@ public class AnalyticsAggregationService {
             log.info("Aggregating data for date: {}", yesterday);
             
             // Get all raw events for yesterday
-            List<RawEvent> rawEvents = rawEventRepository.findByTimestampBetween(startOfDay, endOfDay);
+            List<RawEvent> rawEvents = rawEventRepository.findByTsBetween(startOfDay, endOfDay);
             
             // If no events found with timestamps, get all events (including null timestamps)
             if (rawEvents.isEmpty()) {
