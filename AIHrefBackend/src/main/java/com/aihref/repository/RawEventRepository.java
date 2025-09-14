@@ -16,4 +16,7 @@ public interface RawEventRepository extends MongoRepository<RawEvent, String> {
     
     @Query("{ 'timestamp': { $gte: ?0, $lt: ?1 } }")
     List<RawEvent> findByTimestampBetween(LocalDateTime start, LocalDateTime end);
+    
+    @Query("{ 'siteId': ?0 }")
+    List<RawEvent> findBySiteId(String siteId);
 }

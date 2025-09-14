@@ -32,7 +32,14 @@ public class RealTimeAnalyticsService {
             
             log.info("Fetching raw events for siteId: {} from {} to {}", siteId, startDateTime, endDateTime);
             
+            // First try to get events with timestamps in range
             List<RawEvent> rawEvents = rawEventRepository.findBySiteIdAndTimestampBetween(siteId, startDateTime, endDateTime);
+            
+            // If no events found with timestamps, get all events for this siteId (including null timestamps)
+            if (rawEvents.isEmpty()) {
+                log.info("No events found with timestamps in range, fetching all events for siteId: {}", siteId);
+                rawEvents = rawEventRepository.findBySiteId(siteId);
+            }
             
             if (rawEvents.isEmpty()) {
                 log.info("No raw events found for siteId: {} in range: {}", siteId, range);

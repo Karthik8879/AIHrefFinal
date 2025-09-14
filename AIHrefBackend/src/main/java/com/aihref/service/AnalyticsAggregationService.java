@@ -35,6 +35,12 @@ public class AnalyticsAggregationService {
             
             // Get all raw events for yesterday
             List<RawEvent> rawEvents = rawEventRepository.findByTimestampBetween(startOfDay, endOfDay);
+            
+            // If no events found with timestamps, get all events (including null timestamps)
+            if (rawEvents.isEmpty()) {
+                log.info("No events found with timestamps, fetching all events for aggregation");
+                rawEvents = rawEventRepository.findAll();
+            }
             log.info("Found {} raw events for date {}", rawEvents.size(), yesterday);
             
             if (rawEvents.isEmpty()) {

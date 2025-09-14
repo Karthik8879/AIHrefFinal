@@ -23,8 +23,11 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers("/api/**").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().permitAll()
-            );
+            )
+            .httpBasic(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable);
         
         return http.build();
     }
