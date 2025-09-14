@@ -72,7 +72,6 @@ public class EnhancedAnalyticsResponse {
     @AllArgsConstructor
     public static class LocationCount {
         private String city;
-        private String state;
         private String country;
         private Long count;
     }

@@ -168,15 +168,30 @@ public class EnhancedAnalyticsService {
                 .map(entry -> new EnhancedAnalyticsResponse.SourceCount(entry.getKey(), entry.getValue()))
                 .collect(Collectors.toList());
         
-        // Top Locations (simplified - using country for now)
+        // Top Locations - using actual city and country data
         List<EnhancedAnalyticsResponse.LocationCount> topLocations = filteredEvents.stream()
-                .filter(event -> event.getCountry() != null)
-                .collect(Collectors.groupingBy(RawEvent::getCountry, Collectors.counting()))
+                .filter(event -> event.getCountry() != null && !event.getCountry().isEmpty() && 
+                               !event.getCountry().equals("Unknown"))
+                .collect(Collectors.groupingBy(
+                        event -> {
+                            String city = (event.getCity() != null && !event.getCity().isEmpty() && 
+                                          !event.getCity().equals("Unknown")) 
+                                         ? event.getCity() 
+                                         : "Unknown";
+                            return city + ", " + event.getCountry();
+                        },
+                        Collectors.counting()
+                ))
                 .entrySet().stream()
                 .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
                 .limit(10)
-                .map(entry -> new EnhancedAnalyticsResponse.LocationCount(
-                        "Unknown", "Unknown", entry.getKey(), entry.getValue()))
+                .map(entry -> {
+                    String[] parts = entry.getKey().split(", ");
+                    String city = parts.length > 1 ? parts[0] : "Unknown";
+                    String country = parts.length > 1 ? parts[1] : parts[0];
+                    return new EnhancedAnalyticsResponse.LocationCount(
+                            city, country, entry.getValue());
+                })
                 .collect(Collectors.toList());
         
         // Daily Visitor Trends

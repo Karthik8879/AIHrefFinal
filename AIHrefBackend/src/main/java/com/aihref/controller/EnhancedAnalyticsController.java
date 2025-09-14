@@ -85,6 +85,36 @@ public class EnhancedAnalyticsController {
         }
     }
     
+    @GetMapping("/visitor-trends")
+    public ResponseEntity<List<EnhancedAnalyticsResponse.DailyVisitorCount>> getVisitorTrends(
+            @RequestParam String siteId,
+            @RequestParam(defaultValue = "7d") String range) {
+        
+        log.info("Received request for visitor trends - siteId: {}, range: {}", siteId, range);
+        
+        try {
+            if (!isValidRange(range)) {
+                log.warn("Invalid range parameter: {}", range);
+                return ResponseEntity.badRequest().build();
+            }
+            
+            // Get the enhanced analytics response which includes daily visitor trends
+            EnhancedAnalyticsResponse response = enhancedAnalyticsService.getEnhancedAnalytics(siteId, range);
+            
+            if (response == null || response.getDailyVisitorTrends() == null) {
+                log.warn("No visitor trends data found for siteId: {} range: {}", siteId, range);
+                return ResponseEntity.ok(List.of());
+            }
+            
+            log.info("Found {} visitor trend data points for siteId: {}", response.getDailyVisitorTrends().size(), siteId);
+            return ResponseEntity.ok(response.getDailyVisitorTrends());
+            
+        } catch (Exception e) {
+            log.error("Error fetching visitor trends for siteId: {} range: {}", siteId, range, e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
     @GetMapping("/raw-events")
     public ResponseEntity<List<RawEvent>> getRawEvents(
             @RequestParam String siteId,
