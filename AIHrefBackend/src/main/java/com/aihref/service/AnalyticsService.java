@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -74,8 +75,15 @@ public class AnalyticsService {
                     .map(entry -> new AnalyticsSummaryResponse.CountryCount(entry.getKey(), entry.getValue()))
                     .collect(Collectors.toList());
             
+            // Get the most recent snapshot's date as lastUpdated
+            LocalDateTime lastUpdated = snapshots.stream()
+                    .map(DailySnapshot::getDate)
+                    .max(LocalDate::compareTo)
+                    .map(date -> date.atStartOfDay())
+                    .orElse(LocalDateTime.now());
+            
             AnalyticsSummaryResponse response = new AnalyticsSummaryResponse(
-                    siteId, range, totalVisitors, totalPageviews, topPages, topCountries
+                    siteId, range, totalVisitors, totalPageviews, topPages, topCountries, lastUpdated
             );
             
             log.info("Successfully created analytics summary for siteId: {} with {} visitors and {} pageviews", 
@@ -99,6 +107,6 @@ public class AnalyticsService {
     }
     
     private AnalyticsSummaryResponse createEmptyResponse(String siteId, String range) {
-        return new AnalyticsSummaryResponse(siteId, range, 0L, 0L, List.of(), List.of());
+        return new AnalyticsSummaryResponse(siteId, range, 0L, 0L, List.of(), List.of(), LocalDateTime.now());
     }
 }

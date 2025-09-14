@@ -15,6 +15,7 @@ export interface AnalyticsSummary {
   pageviews: number;
   topPages: PageCount[];
   topCountries: CountryCount[];
+  lastUpdated: string;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';

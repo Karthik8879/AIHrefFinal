@@ -78,7 +78,7 @@ public class RealTimeAnalyticsService {
                     .collect(Collectors.toList());
             
             AnalyticsSummaryResponse response = new AnalyticsSummaryResponse(
-                    siteId, range, totalVisitors, totalPageviews, topPages, topCountries
+                    siteId, range, totalVisitors, totalPageviews, topPages, topCountries, LocalDateTime.now()
             );
             
             log.info("Successfully created real-time analytics summary for siteId: {} with {} visitors and {} pageviews", 
@@ -102,6 +102,6 @@ public class RealTimeAnalyticsService {
     }
     
     private AnalyticsSummaryResponse createEmptyResponse(String siteId, String range) {
-        return new AnalyticsSummaryResponse(siteId, range, 0L, 0L, List.of(), List.of());
+        return new AnalyticsSummaryResponse(siteId, range, 0L, 0L, List.of(), List.of(), LocalDateTime.now());
     }
 }
