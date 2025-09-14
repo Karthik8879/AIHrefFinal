@@ -17,7 +17,7 @@ export default function DashboardPage() {
   const [analytics, setAnalytics] = useState<AnalyticsSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedRange, setSelectedRange] = useState<'7d' | '30d' | 'all'>('7d');
+  const [selectedRange, setSelectedRange] = useState<'7d' | '1m' | '30d' | '1y' | '5y' | 'all'>('7d');
   const [dataSource, setDataSource] = useState<'aggregated' | 'realtime'>('aggregated');
   const [isAggregating, setIsAggregating] = useState(false);
   const [aggregationMessage, setAggregationMessage] = useState<string | null>(null);
@@ -32,9 +32,14 @@ export default function DashboardPage() {
     try {
       setLoading(true);
       setError(null);
+      // Convert the enhanced range to basic range for compatibility
+      const basicRange = selectedRange === '1m' || selectedRange === '1y' || selectedRange === '5y'
+        ? 'all'
+        : selectedRange as '7d' | '30d' | 'all';
+
       const data = dataSource === 'realtime'
-        ? await fetchRealTimeAnalytics(siteId, selectedRange)
-        : await fetchAnalyticsSummary(siteId, selectedRange);
+        ? await fetchRealTimeAnalytics(siteId, basicRange)
+        : await fetchAnalyticsSummary(siteId, basicRange);
       setAnalytics(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load analytics');
@@ -80,12 +85,24 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Analytics Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Site: <span className="font-semibold">{siteId}</span>
-          </p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Analytics Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Site: <span className="font-semibold">{siteId}</span>
+              </p>
+            </div>
+            <div className="flex space-x-4">
+              <a
+                href={`/dashboard/${siteId}/enhanced`}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                📊 Enhanced Dashboard
+              </a>
+            </div>
+          </div>
 
           {/* Controls */}
           <div className="mt-4 space-y-4">
@@ -118,7 +135,7 @@ export default function DashboardPage() {
             <div className="flex items-center space-x-4">
               <span className="text-sm font-medium text-gray-700">Time Range:</span>
               <div className="flex space-x-2">
-                {(['7d', '30d', 'all'] as const).map((range) => (
+                {(['7d', '1m', '30d', '1y', '5y', 'all'] as const).map((range) => (
                   <button
                     key={range}
                     onClick={() => setSelectedRange(range)}
@@ -127,7 +144,11 @@ export default function DashboardPage() {
                       : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
                       }`}
                   >
-                    {range === '7d' ? 'Last 7 days' : range === '30d' ? 'Last 30 days' : 'All time'}
+                    {range === '7d' ? '7D' :
+                      range === '1m' ? '1M' :
+                        range === '30d' ? '30D' :
+                          range === '1y' ? '1Y' :
+                            range === '5y' ? '5Y' : 'ALL'}
                   </button>
                 ))}
               </div>
@@ -254,7 +275,11 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center">
                 <span className="text-gray-600">Time Range</span>
                 <span className="font-semibold text-indigo-600">
-                  {selectedRange === '7d' ? 'Last 7 days' : selectedRange === '30d' ? 'Last 30 days' : 'All time'}
+                  {selectedRange === '7d' ? 'Last 7 days' :
+                    selectedRange === '1m' ? 'Last 1 month' :
+                      selectedRange === '30d' ? 'Last 30 days' :
+                        selectedRange === '1y' ? 'Last 1 year' :
+                          selectedRange === '5y' ? 'Last 5 years' : 'All time'}
                 </span>
               </div>
               <div className="flex justify-between items-center">

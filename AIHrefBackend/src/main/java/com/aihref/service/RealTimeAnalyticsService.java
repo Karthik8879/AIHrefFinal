@@ -95,9 +95,12 @@ public class RealTimeAnalyticsService {
     private LocalDate calculateStartDate(LocalDate endDate, String range) {
         return switch (range.toLowerCase()) {
             case "7d" -> endDate.minusDays(6);
+            case "1m" -> endDate.minusDays(29);
             case "30d" -> endDate.minusDays(29);
+            case "1y" -> endDate.minusDays(364);
+            case "5y" -> endDate.minusDays(1824);
             case "all" -> LocalDate.of(2020, 1, 1); // Far back date to get all data
-            default -> throw new IllegalArgumentException("Invalid range: " + range + ". Supported values: 7d, 30d, all");
+            default -> throw new IllegalArgumentException("Invalid range: " + range + ". Supported values: 7d, 1m, 30d, 1y, 5y, all");
         };
     }
     
