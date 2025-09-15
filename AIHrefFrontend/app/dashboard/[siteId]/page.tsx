@@ -10,6 +10,7 @@ import {
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorMessage from "@/components/ErrorMessage";
 import ThemeToggle from "@/components/ThemeToggle";
+import TrafficSummary from "@/components/TrafficSummary";
 import HighestPerformingSegments from "@/components/HighestPerformingSegments";
 import PerformanceOverTime from "@/components/PerformanceOverTime";
 import TopLocationsList from "@/components/TopLocationsList";
@@ -142,8 +143,8 @@ export default function DashboardPage() {
                         key={range}
                         onClick={() => setSelectedRange(range)}
                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${selectedRange === range
-                            ? "bg-blue-600 text-white shadow-lg transform scale-105"
-                            : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-blue-300"
+                          ? "bg-blue-600 text-white shadow-lg transform scale-105"
+                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-blue-300"
                           }`}
                       >
                         {range === "7d"
@@ -164,8 +165,8 @@ export default function DashboardPage() {
                 onClick={handleManualAggregation}
                 disabled={isAggregating}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isAggregating
-                    ? "bg-gray-400 text-white cursor-not-allowed"
-                    : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  ? "bg-gray-400 text-white cursor-not-allowed"
+                  : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transform hover:scale-105"
                   }`}
               >
                 {isAggregating ? (
@@ -189,153 +190,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Traffic Summary */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Traffic Summary
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {analytics.totalVisitorsTillDate.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                    Total Visitors till date
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-blue-600 dark:text-blue-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {analytics.todayVisitors.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                    Today&apos;s Visitors
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {analytics.thisWeekVisitors.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                    This Week
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-purple-600 dark:text-purple-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {analytics.thisMonthVisitors.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                    This Month
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-orange-600 dark:text-orange-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-xl transition-all duration-300">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                    {analytics.repeatVisitorsToday.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-300 font-medium">
-                    Repeat Visitors Today
-                  </div>
-                </div>
-                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
-                  <svg
-                    className="w-6 h-6 text-red-600 dark:text-red-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TrafficSummary analytics={analytics} />
 
         {/* Highest Performing Segments */}
         <HighestPerformingSegments analytics={analytics} />

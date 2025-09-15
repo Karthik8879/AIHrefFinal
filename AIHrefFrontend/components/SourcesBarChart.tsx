@@ -1,6 +1,7 @@
 "use client";
 
 import { EnhancedAnalytics } from "@/lib/analytics";
+import ChartContainer from "./ChartContainer";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -97,14 +98,8 @@ export default function SourcesBarChart({ analytics }: SourcesBarChartProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 h-[520px] flex flex-col">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Visitors by Top 10 Sources
-      </h3>
-
-      <div className="w-full flex-1" style={{ height: "400px" }}>
-        <Bar data={data} options={options} />
-      </div>
-    </div>
+    <ChartContainer title="Visitors by Top 10 Sources">
+      <Bar data={data} options={options} />
+    </ChartContainer>
   );
 }
