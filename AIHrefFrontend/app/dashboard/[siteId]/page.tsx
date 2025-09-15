@@ -141,19 +141,18 @@ export default function DashboardPage() {
                       <button
                         key={range}
                         onClick={() => setSelectedRange(range)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${
-                          selectedRange === range
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${selectedRange === range
                             ? "bg-blue-600 text-white shadow-lg transform scale-105"
                             : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-blue-300"
-                        }`}
+                          }`}
                       >
                         {range === "7d"
                           ? "7D"
                           : range === "1m"
-                          ? "1M"
-                          : range === "1y"
-                          ? "1Y"
-                          : "5Y"}
+                            ? "1M"
+                            : range === "1y"
+                              ? "1Y"
+                              : "5Y"}
                       </button>
                     ))}
                   </div>
@@ -164,11 +163,10 @@ export default function DashboardPage() {
               <button
                 onClick={handleManualAggregation}
                 disabled={isAggregating}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  isAggregating
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isAggregating
                     ? "bg-gray-400 text-white cursor-not-allowed"
                     : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                }`}
+                  }`}
               >
                 {isAggregating ? (
                   <>
@@ -367,10 +365,10 @@ export default function DashboardPage() {
                     range === "7D"
                       ? "7d"
                       : range === "1M"
-                      ? "1m"
-                      : range === "1Y"
-                      ? "1y"
-                      : "5y";
+                        ? "1m"
+                        : range === "1Y"
+                          ? "1y"
+                          : "5y";
                   // Only update if different to prevent unnecessary reloads
                   if (selectedRange !== dashboardRange) {
                     setSelectedRange(
@@ -393,21 +391,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-12 text-center">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 p-6">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Last updated: {new Date(analytics.lastUpdated).toLocaleString()}
-            </p>
-            <div className="mt-2 flex justify-center space-x-4 text-xs text-gray-400 dark:text-gray-500">
-              <span>📊 Real-time Analytics</span>
-              <span>•</span>
-              <span>🔄 Auto-refresh</span>
-              <span>•</span>
-              <span>📈 Interactive Charts</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
