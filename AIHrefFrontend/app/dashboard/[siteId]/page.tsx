@@ -7,7 +7,8 @@ import {
   triggerManualAggregation,
   EnhancedAnalytics,
 } from "@/lib/analytics";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import AIHrefLoader from "@/components/AIHrefLoader";
+import LoadingOverlay from "@/components/LoadingOverlay";
 import ErrorMessage from "@/components/ErrorMessage";
 import ThemeToggle from "@/components/ThemeToggle";
 import TrafficSummary from "@/components/TrafficSummary";
@@ -85,11 +86,7 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-300">
-        <LoadingSpinner />
-      </div>
-    );
+    return <AIHrefLoader message="Loading analytics data..." />;
   }
 
   if (error) {
@@ -247,6 +244,12 @@ export default function DashboardPage() {
         </div>
 
       </div>
+
+      {/* Loading Overlay for Aggregation */}
+      <LoadingOverlay
+        isVisible={isAggregating}
+        message={aggregationMessage || "Aggregating analytics data..."}
+      />
     </div>
   );
 }

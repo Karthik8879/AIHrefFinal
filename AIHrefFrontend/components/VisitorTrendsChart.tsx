@@ -73,25 +73,19 @@ export default function VisitorTrendsChart({
       setLoading(true);
       const apiRange = getApiRange(range);
 
-      // Start with empty data structure for current date range
-      let baseData = generateTrendData(range);
-
       // Try to fetch fresh data from the API
       try {
         const trendsData = await fetchVisitorTrends(siteId, apiRange);
 
-        // Merge API data with base data structure
-        const dataMap = new Map(
-          trendsData.map((trend) => [trend.date, trend.visitors])
-        );
-        const mergedData = baseData.map((point) => ({
-          date: point.date,
-          visitors: dataMap.get(point.date) || 0,
-          pageviews: 0, // Default pageviews
+        // Use API data directly, converting to the expected format
+        const chartData = trendsData.map((trend) => ({
+          date: trend.date,
+          visitors: trend.visitors,
+          pageviews: trend.pageviews || 0,
         }));
 
-        console.log("API merged data:", mergedData);
-        setChartData(mergedData);
+        console.log("API data:", chartData);
+        setChartData(chartData);
       } catch (apiError) {
         console.warn("API fetch failed, using analytics data:", apiError);
 
@@ -100,23 +94,18 @@ export default function VisitorTrendsChart({
           analytics.dailyVisitorTrends &&
           analytics.dailyVisitorTrends.length > 0
         ) {
-          // Merge analytics data with base data structure
-          const dataMap = new Map(
-            analytics.dailyVisitorTrends.map((trend) => [
-              trend.date,
-              trend.visitors,
-            ])
-          );
-          const mergedData = baseData.map((point) => ({
-            date: point.date,
-            visitors: dataMap.get(point.date) || 0,
-            pageviews: 0, // Default pageviews
+          // Use analytics data directly
+          const chartData = analytics.dailyVisitorTrends.map((trend) => ({
+            date: trend.date,
+            visitors: trend.visitors,
+            pageviews: trend.pageviews || 0,
           }));
 
-          console.log("Analytics merged data:", mergedData);
-          setChartData(mergedData);
+          console.log("Analytics data:", chartData);
+          setChartData(chartData);
         } else {
           // Final fallback: use empty data structure
+          const baseData = generateTrendData(range);
           console.log("Using base data (no analytics data):", baseData);
           setChartData(baseData);
         }
@@ -198,6 +187,11 @@ export default function VisitorTrendsChart({
   // Ensure chartData is properly initialized
   const safeChartData = chartData && Array.isArray(chartData) ? chartData : [];
 
+  // Debug logging
+  console.log("Chart data for range", selectedRange, ":", safeChartData);
+  console.log("Chart labels:", safeChartData.map((point) => point.date));
+  console.log("Chart values:", safeChartData.map((point) => point.visitors));
+
   const data = {
     labels: safeChartData.map((point) => point.date),
     datasets: [
@@ -270,7 +264,15 @@ export default function VisitorTrendsChart({
         display: false,
       },
       tooltip: {
-        enabled: false, // Disable tooltips to show data labels instead
+        enabled: true, // Enable tooltips to help debug
+        callbacks: {
+          title: function (context: any) {
+            return context[0].label;
+          },
+          label: function (context: any) {
+            return `Visitors: ${context.parsed.y}`;
+          }
+        }
       },
       datalabels: {
         display: true,
@@ -290,13 +292,12 @@ export default function VisitorTrendsChart({
           left: 4,
           right: 4,
         },
-        formatter: function (value: any, context: any) {
-          // Since we're now passing simple numbers, just return the value
-          if (typeof value === "number") {
+        formatter: function (value: number) {
+          // Only show labels for non-zero values
+          if (typeof value === "number" && value > 0) {
             return value;
           }
-          // Fallback for any edge cases
-          return value || 0;
+          return "";
         },
       },
     },
@@ -319,10 +320,10 @@ export default function VisitorTrendsChart({
             selectedRange === "1M"
               ? 15
               : selectedRange === "1Y"
-              ? 12
-              : selectedRange === "5Y"
-              ? 5
-              : 7,
+                ? 12
+                : selectedRange === "5Y"
+                  ? 5
+                  : 7,
           rotation: selectedRange === "1M" ? -45 : 0, // Rotate dates for 1M view
         },
       },
@@ -365,11 +366,10 @@ export default function VisitorTrendsChart({
               key={range}
               onClick={() => handleRangeChange(range)}
               disabled={loading}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${
-                selectedRange === range
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${selectedRange === range
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {loading && selectedRange === range ? "..." : range}
             </button>
@@ -383,10 +383,10 @@ export default function VisitorTrendsChart({
           {selectedRange === "7D"
             ? "Last 7 Days"
             : selectedRange === "1M"
-            ? "Last 30 Days"
-            : selectedRange === "1Y"
-            ? "Last 12 Months"
-            : "Last 5 Years"}
+              ? "Last 30 Days"
+              : selectedRange === "1Y"
+                ? "Last 12 Months"
+                : "Last 5 Years"}
         </p>
       </div>
 

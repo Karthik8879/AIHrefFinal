@@ -62,7 +62,7 @@ export default function SourcesBarChart({ analytics }: SourcesBarChartProps) {
         cornerRadius: 8,
         displayColors: false,
         callbacks: {
-          label: function (context: any) {
+          label: function (context: { parsed: { y: number } }) {
             return `Visitors: ${context.parsed.y.toLocaleString()}`;
           },
         },

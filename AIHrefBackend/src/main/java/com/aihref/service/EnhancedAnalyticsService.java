@@ -233,63 +233,62 @@ public class EnhancedAnalyticsService {
     private List<EnhancedAnalyticsResponse.DailyVisitorCount> generateCompleteTimeSeries(
             List<RawEvent> filteredEvents, LocalDate startDate, LocalDate endDate, String range) {
         
-        // Create maps of actual visitor counts and pageviews by date
-        Map<LocalDate, Set<String>> visitorsByDate = filteredEvents.stream()
-                .filter(event -> event.getTs() != null)
-                .collect(Collectors.groupingBy(
-                        event -> event.getTs().toLocalDate(),
-                        Collectors.mapping(RawEvent::getAnonId, Collectors.toSet())
-                ));
-        
-        Map<LocalDate, Long> pageviewsByDate = filteredEvents.stream()
-                .filter(event -> event.getTs() != null)
-                .collect(Collectors.groupingBy(
-                        event -> event.getTs().toLocalDate(),
-                        Collectors.counting()
-                ));
-        
         List<EnhancedAnalyticsResponse.DailyVisitorCount> timeSeries = new ArrayList<>();
         
         // Generate data points based on range
         switch (range.toLowerCase()) {
             case "7d":
-                // Last 7 days
+                // Last 7 days - daily data
                 for (int i = 6; i >= 0; i--) {
                     LocalDate date = endDate.minusDays(i);
-                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
-                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
+                    long visitors = countUniqueVisitorsForDate(filteredEvents, date);
+                    long pageviews = countPageviewsForDate(filteredEvents, date);
                     timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
                 }
                 break;
                 
             case "1m":
             case "30d":
-                // Last 30 days
+                // Last 30 days - daily data
                 for (int i = 29; i >= 0; i--) {
                     LocalDate date = endDate.minusDays(i);
-                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
-                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
+                    long visitors = countUniqueVisitorsForDate(filteredEvents, date);
+                    long pageviews = countPageviewsForDate(filteredEvents, date);
                     timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
                 }
                 break;
                 
             case "1y":
-                // Last 12 months (first day of each month)
+                // Last 12 months - aggregate data for each month
                 for (int i = 11; i >= 0; i--) {
-                    LocalDate date = endDate.minusMonths(i).withDayOfMonth(1);
-                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
-                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
-                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
+                    LocalDate monthStart = endDate.minusMonths(i).withDayOfMonth(1);
+                    LocalDate monthEnd = monthStart.withDayOfMonth(monthStart.lengthOfMonth());
+                    
+                    // Ensure we don't go beyond the end date
+                    if (monthEnd.isAfter(endDate)) {
+                        monthEnd = endDate;
+                    }
+                    
+                    long visitors = countUniqueVisitorsForDateRange(filteredEvents, monthStart, monthEnd);
+                    long pageviews = countPageviewsForDateRange(filteredEvents, monthStart, monthEnd);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(monthStart, visitors, pageviews));
                 }
                 break;
                 
             case "5y":
-                // Last 5 years (first day of each year)
+                // Last 5 years - aggregate data for each year
                 for (int i = 4; i >= 0; i--) {
-                    LocalDate date = endDate.minusYears(i).withDayOfYear(1);
-                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
-                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
-                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
+                    LocalDate yearStart = endDate.minusYears(i).withDayOfYear(1);
+                    LocalDate yearEnd = yearStart.withDayOfYear(yearStart.lengthOfYear());
+                    
+                    // Ensure we don't go beyond the end date
+                    if (yearEnd.isAfter(endDate)) {
+                        yearEnd = endDate;
+                    }
+                    
+                    long visitors = countUniqueVisitorsForDateRange(filteredEvents, yearStart, yearEnd);
+                    long pageviews = countPageviewsForDateRange(filteredEvents, yearStart, yearEnd);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(yearStart, visitors, pageviews));
                 }
                 break;
                 
@@ -297,8 +296,8 @@ public class EnhancedAnalyticsService {
                 // For other ranges, generate daily data
                 LocalDate current = startDate;
                 while (!current.isAfter(endDate)) {
-                    long visitors = visitorsByDate.getOrDefault(current, Set.of()).size();
-                    long pageviews = pageviewsByDate.getOrDefault(current, 0L);
+                    long visitors = countUniqueVisitorsForDate(filteredEvents, current);
+                    long pageviews = countPageviewsForDate(filteredEvents, current);
                     timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(current, visitors, pageviews));
                     current = current.plusDays(1);
                 }
@@ -306,6 +305,38 @@ public class EnhancedAnalyticsService {
         }
         
         return timeSeries;
+    }
+    
+    private long countUniqueVisitorsForDate(List<RawEvent> events, LocalDate date) {
+        return events.stream()
+                .filter(event -> event.getTs() != null && event.getTs().toLocalDate().equals(date))
+                .map(RawEvent::getAnonId)
+                .distinct()
+                .count();
+    }
+    
+    private long countPageviewsForDate(List<RawEvent> events, LocalDate date) {
+        return events.stream()
+                .filter(event -> event.getTs() != null && event.getTs().toLocalDate().equals(date))
+                .count();
+    }
+    
+    private long countUniqueVisitorsForDateRange(List<RawEvent> events, LocalDate startDate, LocalDate endDate) {
+        return events.stream()
+                .filter(event -> event.getTs() != null && 
+                        !event.getTs().toLocalDate().isBefore(startDate) && 
+                        !event.getTs().toLocalDate().isAfter(endDate))
+                .map(RawEvent::getAnonId)
+                .distinct()
+                .count();
+    }
+    
+    private long countPageviewsForDateRange(List<RawEvent> events, LocalDate startDate, LocalDate endDate) {
+        return events.stream()
+                .filter(event -> event.getTs() != null && 
+                        !event.getTs().toLocalDate().isBefore(startDate) && 
+                        !event.getTs().toLocalDate().isAfter(endDate))
+                .count();
     }
     
     private EnhancedAnalyticsResponse createEmptyResponse(String siteId, String range) {
