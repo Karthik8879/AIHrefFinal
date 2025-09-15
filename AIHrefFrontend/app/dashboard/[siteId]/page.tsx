@@ -86,7 +86,7 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return <AIHrefLoader message="Loading analytics data..." />;
+    return <AIHrefLoader />;
   }
 
   if (error) {
@@ -211,6 +211,15 @@ export default function DashboardPage() {
               <VisitorTrendsChart
                 analytics={analytics}
                 siteId={siteId}
+                selectedRange={
+                  selectedRange === "7d"
+                    ? "7D"
+                    : selectedRange === "1m"
+                      ? "1M"
+                      : selectedRange === "1y"
+                        ? "1Y"
+                        : "5Y"
+                }
                 onRangeChange={(range) => {
                   // Convert chart range to dashboard range
                   const dashboardRange =
@@ -248,7 +257,6 @@ export default function DashboardPage() {
       {/* Loading Overlay for Aggregation */}
       <LoadingOverlay
         isVisible={isAggregating}
-        message={aggregationMessage || "Aggregating analytics data..."}
       />
     </div>
   );

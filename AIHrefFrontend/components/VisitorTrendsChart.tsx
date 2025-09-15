@@ -1,7 +1,7 @@
 "use client";
 
 import { EnhancedAnalytics, fetchVisitorTrends } from "@/lib/analytics";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,21 +33,21 @@ ChartJS.register(
 interface VisitorTrendsChartProps {
   analytics: EnhancedAnalytics;
   siteId: string;
+  selectedRange: "7D" | "1M" | "1Y" | "5Y";
   onRangeChange?: (range: "7D" | "1M" | "1Y" | "5Y") => void;
 }
 
 export default function VisitorTrendsChart({
   analytics,
   siteId,
+  selectedRange,
   onRangeChange,
 }: VisitorTrendsChartProps) {
-  const [selectedRange, setSelectedRange] = useState<"7D" | "1M" | "1Y" | "5Y">(
-    "7D"
-  );
   const [chartData, setChartData] = useState<
     { date: string; visitors: number; pageviews: number }[]
   >([]);
   const [loading, setLoading] = useState(false);
+  const [internalRange, setInternalRange] = useState<"7D" | "1M" | "1Y" | "5Y">(selectedRange);
 
   // Convert backend range to API range
   const getApiRange = (
@@ -68,7 +68,7 @@ export default function VisitorTrendsChart({
   };
 
   // Fetch visitor trends data based on selected range
-  const fetchVisitorTrendsData = async (range: "7D" | "1M" | "1Y" | "5Y") => {
+  const fetchVisitorTrendsData = useCallback(async (range: "7D" | "1M" | "1Y" | "5Y") => {
     try {
       setLoading(true);
       const apiRange = getApiRange(range);
@@ -118,7 +118,7 @@ export default function VisitorTrendsChart({
     } finally {
       setLoading(false);
     }
-  };
+  }, [siteId, analytics]);
 
   // Generate data relative to current date with exact patterns from images
   const generateTrendData = (range: "7D" | "1M" | "1Y" | "5Y") => {
@@ -172,23 +172,30 @@ export default function VisitorTrendsChart({
   };
 
   // Handle range change
-  const handleRangeChange = (range: "7D" | "1M" | "1Y" | "5Y") => {
-    setSelectedRange(range);
+  const handleRangeChange = useCallback((range: "7D" | "1M" | "1Y" | "5Y") => {
+    setInternalRange(range);
     fetchVisitorTrendsData(range);
-    // Don't call onRangeChange to prevent dashboard reload
-    // The chart will handle its own data fetching
-  };
+    // Call onRangeChange to sync with dashboard
+    if (onRangeChange) {
+      onRangeChange(range);
+    }
+  }, [fetchVisitorTrendsData, onRangeChange]);
+
+  // Sync internal range with prop changes
+  useEffect(() => {
+    setInternalRange(selectedRange);
+  }, [selectedRange]);
 
   // Load initial data
   useEffect(() => {
-    fetchVisitorTrendsData(selectedRange);
-  }, [analytics, selectedRange]);
+    fetchVisitorTrendsData(internalRange);
+  }, [fetchVisitorTrendsData, internalRange]);
 
   // Ensure chartData is properly initialized
   const safeChartData = chartData && Array.isArray(chartData) ? chartData : [];
 
   // Debug logging
-  console.log("Chart data for range", selectedRange, ":", safeChartData);
+  console.log("Chart data for range", internalRange, ":", safeChartData);
   console.log("Chart labels:", safeChartData.map((point) => point.date));
   console.log("Chart values:", safeChartData.map((point) => point.visitors));
 
@@ -220,7 +227,7 @@ export default function VisitorTrendsChart({
 
   // Get time unit and display format based on selected range
   const getTimeConfig = () => {
-    switch (selectedRange) {
+    switch (internalRange) {
       case "7D":
         return {
           unit: "day" as const,
@@ -266,10 +273,10 @@ export default function VisitorTrendsChart({
       tooltip: {
         enabled: true, // Enable tooltips to help debug
         callbacks: {
-          title: function (context: any) {
+          title: function (context: { label: string }[]) {
             return context[0].label;
           },
-          label: function (context: any) {
+          label: function (context: { parsed: { y: number } }) {
             return `Visitors: ${context.parsed.y}`;
           }
         }
@@ -317,14 +324,14 @@ export default function VisitorTrendsChart({
             size: 12,
           },
           maxTicksLimit:
-            selectedRange === "1M"
+            internalRange === "1M"
               ? 15
-              : selectedRange === "1Y"
+              : internalRange === "1Y"
                 ? 12
-                : selectedRange === "5Y"
+                : internalRange === "5Y"
                   ? 5
                   : 7,
-          rotation: selectedRange === "1M" ? -45 : 0, // Rotate dates for 1M view
+          rotation: internalRange === "1M" ? -45 : 0, // Rotate dates for 1M view
         },
       },
       y: {
@@ -366,12 +373,12 @@ export default function VisitorTrendsChart({
               key={range}
               onClick={() => handleRangeChange(range)}
               disabled={loading}
-              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${selectedRange === range
+              className={`px-3 py-1 rounded-lg text-sm font-medium transition-all duration-200 ${internalRange === range
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 } ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
             >
-              {loading && selectedRange === range ? "..." : range}
+              {loading && internalRange === range ? "..." : range}
             </button>
           ))}
         </div>
@@ -380,11 +387,11 @@ export default function VisitorTrendsChart({
       <div className="mb-4">
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Visits -{" "}
-          {selectedRange === "7D"
+          {internalRange === "7D"
             ? "Last 7 Days"
-            : selectedRange === "1M"
+            : internalRange === "1M"
               ? "Last 30 Days"
-              : selectedRange === "1Y"
+              : internalRange === "1Y"
                 ? "Last 12 Months"
                 : "Last 5 Years"}
         </p>

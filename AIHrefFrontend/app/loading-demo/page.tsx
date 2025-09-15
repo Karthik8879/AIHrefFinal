@@ -96,10 +96,9 @@ export default function LoadingDemo() {
       </div>
 
       {/* Loaders */}
-      {showMainLoader && <AIHrefLoader message="Loading demo data..." />}
+      {showMainLoader && <AIHrefLoader />}
       <LoadingOverlay
         isVisible={showOverlay}
-        message="Processing your request..."
       />
     </div>
   );
