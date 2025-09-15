@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import CombinedAnalytics from "@/components/CombinedAnalytics";
+import AIInsightsPanel from "@/components/AIInsightsPanel";
+import AIModeToggle from "@/components/AIModeToggle";
 import { fetchCombinedAnalytics, CombinedAnalytics as CombinedAnalyticsType } from "@/lib/combined-analytics";
+import { fetchCombinedAIInsights, fetchCombinedQuickInsights, AIInsightsResponse } from "@/lib/ai-insights";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Home() {
@@ -11,6 +14,9 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRange, setSelectedRange] = useState<"7d" | "1m" | "1y" | "5y">("7d");
+  const [isAIMode, setIsAIMode] = useState(false);
+  const [aiInsights, setAiInsights] = useState<AIInsightsResponse | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     const loadAnalytics = async () => {
@@ -29,6 +35,41 @@ export default function Home() {
 
     loadAnalytics();
   }, [selectedRange]);
+
+  useEffect(() => {
+    if (isAIMode && analytics) {
+      loadQuickAIInsights();
+    }
+  }, [isAIMode, selectedRange]);
+
+  const loadQuickAIInsights = async () => {
+    try {
+      setAiLoading(true);
+      const insights = await fetchCombinedQuickInsights(selectedRange);
+      setAiInsights(insights);
+    } catch (err) {
+      console.error("Error loading AI insights:", err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const handleAIQuestion = async (question: string) => {
+    try {
+      setAiLoading(true);
+      const insights = await fetchCombinedAIInsights({
+        range: selectedRange,
+        query: question,
+        includeTrends: true,
+        includePredictions: true,
+      });
+      setAiInsights(insights);
+    } catch (err) {
+      console.error("Error processing AI question:", err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -87,6 +128,11 @@ export default function Home() {
           </div>
 
           <div className="flex items-center space-x-4 mt-4 lg:mt-0">
+            <AIModeToggle
+              isAIMode={isAIMode}
+              onToggle={setIsAIMode}
+              isLoading={aiLoading}
+            />
             <ThemeToggle />
             <div className="flex items-center space-x-2">
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</span>
@@ -108,8 +154,55 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Combined Analytics */}
-        {analytics && <CombinedAnalytics analytics={analytics} selectedRange={selectedRange} />}
+        {/* AI Mode Content */}
+        {isAIMode ? (
+          <div className="space-y-8">
+            {/* AI Insights Panel */}
+            <AIInsightsPanel
+              insights={aiInsights}
+              isLoading={aiLoading}
+              onAskQuestion={handleAIQuestion}
+            />
+
+            {/* Analytics Data (Collapsed in AI Mode) */}
+            {analytics && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  📊 Analytics Data Summary
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {(analytics.totalVisitors || 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Total Visitors</div>
+                  </div>
+                  <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {(analytics.totalPageViews || 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Page Views</div>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                      {Math.round(analytics.averageSessionDuration || 0)}s
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Avg Session</div>
+                  </div>
+                  <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                    <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                      {(analytics.bounceRate || 0).toFixed(1)}%
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Bounce Rate</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          /* Regular Analytics View */
+          analytics && <CombinedAnalytics analytics={analytics} selectedRange={selectedRange} />
+        )}
       </div>
     </div>
   );
