@@ -15,7 +15,7 @@ export default function TrafficSummary({ analytics }: TrafficSummaryProps) {
   return (
     <div className="mb-8">
       <SectionHeader title="Traffic Summary" />
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         <MetricCard
           title="Total Visitors till date"
           value={analytics.totalVisitorsTillDate}

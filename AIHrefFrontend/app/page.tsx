@@ -1,107 +1,115 @@
-import Link from "next/link";
+"use client";
+
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
+import CombinedAnalytics from "@/components/CombinedAnalytics";
+import { fetchCombinedAnalytics, CombinedAnalytics as CombinedAnalyticsType } from "@/lib/combined-analytics";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Home() {
-  const sampleSites = [
-    { id: 'greplus', name: 'GRE Plus', description: 'GRE preparation platform' },
-    { id: 'test-site-1', name: 'Test Site 1', description: 'Demo analytics with dummy data' },
-    { id: 'novareaders', name: 'Nova Readers', description: 'Reading analytics platform' },
-    { id: 'example', name: 'Example Site', description: 'Sample analytics dashboard' }
-  ];
+  const [analytics, setAnalytics] = useState<CombinedAnalyticsType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedRange, setSelectedRange] = useState<"7d" | "1m" | "1y" | "5y">("7d");
+
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchCombinedAnalytics(selectedRange);
+        setAnalytics(data);
+      } catch (err) {
+        console.error("Error loading analytics:", err);
+        setError(err instanceof Error ? err.message : "Failed to load analytics");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAnalytics();
+  }, [selectedRange]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600 dark:text-gray-300">Loading combined analytics...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <Navigation />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">Error Loading Analytics</h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-4">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navigation />
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            AIHref Analytics Dashboard
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Monitor your website analytics with real-time insights, visitor tracking, and detailed performance metrics.
-          </p>
-        </div>
-
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-            <div className="text-4xl mb-4">📊</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Real-time Analytics</h3>
-            <p className="text-gray-600">Track visitors, pageviews, and user behavior in real-time</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-            <div className="text-4xl mb-4">🌍</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Geographic Insights</h3>
-            <p className="text-gray-600">Understand where your visitors are coming from</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 text-center">
-            <div className="text-4xl mb-4">📈</div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Performance Tracking</h3>
-            <p className="text-gray-600">Monitor top pages and user engagement metrics</p>
-          </div>
-        </div>
-
-        {/* Sample Sites */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            View Analytics Dashboard
-          </h2>
-          <p className="text-gray-600 text-center mb-8">
-            Select a site to view its analytics dashboard:
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {sampleSites.map((site) => (
-              <Link
-                key={site.id}
-                href={`/dashboard/${site.id}`}
-                className="block p-6 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200 group"
-              >
-                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-blue-600">
-                  {site.name}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4">{site.description}</p>
-                <div className="flex items-center text-blue-600 text-sm font-medium">
-                  View Dashboard
-                  <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Test Analytics Section */}
-        <div className="mt-8 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-200">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-purple-900 mb-3">🧪 Test Analytics with Dummy Data</h3>
-            <p className="text-purple-800 mb-4">
-              Want to see how the analytics look with sample data? Check out our test dashboard!
+        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-8">
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2">
+              Combined Analytics Dashboard
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-300">
+              Real-time insights across all your websites
             </p>
-            <Link
-              href="/test-analytics"
-              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg hover:from-purple-700 hover:to-pink-700 transform hover:scale-105 transition-all duration-200 shadow-lg hover:shadow-xl"
-            >
-              🚀 Go to Test Analytics
-              <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </Link>
+          </div>
+
+          <div className="flex items-center space-x-4 mt-4 lg:mt-0">
+            <ThemeToggle />
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Time Range:</span>
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                {(["7d", "1m", "1y", "5y"] as const).map((range) => (
+                  <button
+                    key={range}
+                    onClick={() => setSelectedRange(range)}
+                    className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${selectedRange === range
+                      ? "bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm"
+                      : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      }`}
+                  >
+                    {range === "7d" ? "7D" : range === "1m" ? "1M" : range === "1y" ? "1Y" : "5Y"}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Instructions */}
-        <div className="mt-12 bg-blue-50 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-3">Getting Started</h3>
-          <div className="text-blue-800 space-y-2">
-            <p>1. Make sure your Spring Boot backend is running on <code className="bg-blue-100 px-2 py-1 rounded">http://localhost:8080</code></p>
-            <p>2. Click on any site above to view its analytics dashboard</p>
-            <p>3. Use the time range selector (7d, 30d, all) to filter data</p>
-            <p>4. The dashboard will automatically refresh when new data is available</p>
-          </div>
-        </div>
+        {/* Combined Analytics */}
+        {analytics && <CombinedAnalytics analytics={analytics} />}
       </div>
     </div>
   );

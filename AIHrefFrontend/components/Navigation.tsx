@@ -8,10 +8,11 @@ export default function Navigation() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: "/", label: "Home", icon: "🏠" },
+    { href: "/", label: "Combined Analytics", icon: "📊" },
     { href: "/dashboard/greplus", label: "GRE Plus", icon: "🎓", website: "greplus.com" },
     { href: "/dashboard/novareaders", label: "Nova Readers", icon: "📚", website: "novareaders.com" },
-    { href: "/dashboard/test-site-1", label: "Test Site", icon: "🧪", website: "test-site-1.com" },
+    { href: "/dashboard/aixrayassist", label: "AI X-Ray Assist", icon: "🏥", website: "aixrayassist.com" },
+    { href: "/dashboard/aihref", label: "AIHref", icon: "🔗", website: "aihref.com" },
   ];
 
   return (
@@ -30,7 +31,9 @@ export default function Navigation() {
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   AIHref Analytics
                 </h1>
-                <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">Professional Dashboard</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 -mt-1">
+                  {pathname === "/" ? "Combined Dashboard" : "Professional Dashboard"}
+                </p>
               </div>
             </Link>
           </div>
