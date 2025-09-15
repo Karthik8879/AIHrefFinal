@@ -194,20 +194,9 @@ public class EnhancedAnalyticsService {
                 })
                 .collect(Collectors.toList());
         
-        // Daily Visitor Trends
-        List<EnhancedAnalyticsResponse.DailyVisitorCount> dailyVisitorTrends = dailyVisits.entrySet().stream()
-                .sorted(Map.Entry.comparingByKey())
-                .map(entry -> {
-                    long visitors = filteredEvents.stream()
-                            .filter(event -> event.getTs() != null && 
-                                    event.getTs().toLocalDate().equals(entry.getKey()))
-                            .map(RawEvent::getAnonId)
-                            .distinct()
-                            .count();
-                    return new EnhancedAnalyticsResponse.DailyVisitorCount(
-                            entry.getKey(), visitors, entry.getValue());
-                })
-                .collect(Collectors.toList());
+        // Daily Visitor Trends - Generate complete time series
+        List<EnhancedAnalyticsResponse.DailyVisitorCount> dailyVisitorTrends = generateCompleteTimeSeries(
+                filteredEvents, startDate, endDate, range);
         
         return new EnhancedAnalyticsResponse(
                 siteId, range,
@@ -239,6 +228,84 @@ public class EnhancedAnalyticsService {
             case "all" -> LocalDate.of(2020, 1, 1);
             default -> throw new IllegalArgumentException("Invalid range: " + range + ". Supported values: 7d, 1m, 30d, 1y, 5y, all");
         };
+    }
+    
+    private List<EnhancedAnalyticsResponse.DailyVisitorCount> generateCompleteTimeSeries(
+            List<RawEvent> filteredEvents, LocalDate startDate, LocalDate endDate, String range) {
+        
+        // Create maps of actual visitor counts and pageviews by date
+        Map<LocalDate, Set<String>> visitorsByDate = filteredEvents.stream()
+                .filter(event -> event.getTs() != null)
+                .collect(Collectors.groupingBy(
+                        event -> event.getTs().toLocalDate(),
+                        Collectors.mapping(RawEvent::getAnonId, Collectors.toSet())
+                ));
+        
+        Map<LocalDate, Long> pageviewsByDate = filteredEvents.stream()
+                .filter(event -> event.getTs() != null)
+                .collect(Collectors.groupingBy(
+                        event -> event.getTs().toLocalDate(),
+                        Collectors.counting()
+                ));
+        
+        List<EnhancedAnalyticsResponse.DailyVisitorCount> timeSeries = new ArrayList<>();
+        
+        // Generate data points based on range
+        switch (range.toLowerCase()) {
+            case "7d":
+                // Last 7 days
+                for (int i = 6; i >= 0; i--) {
+                    LocalDate date = endDate.minusDays(i);
+                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
+                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
+                }
+                break;
+                
+            case "1m":
+            case "30d":
+                // Last 30 days
+                for (int i = 29; i >= 0; i--) {
+                    LocalDate date = endDate.minusDays(i);
+                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
+                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
+                }
+                break;
+                
+            case "1y":
+                // Last 12 months (first day of each month)
+                for (int i = 11; i >= 0; i--) {
+                    LocalDate date = endDate.minusMonths(i).withDayOfMonth(1);
+                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
+                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
+                }
+                break;
+                
+            case "5y":
+                // Last 5 years (first day of each year)
+                for (int i = 4; i >= 0; i--) {
+                    LocalDate date = endDate.minusYears(i).withDayOfYear(1);
+                    long visitors = visitorsByDate.getOrDefault(date, Set.of()).size();
+                    long pageviews = pageviewsByDate.getOrDefault(date, 0L);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(date, visitors, pageviews));
+                }
+                break;
+                
+            default:
+                // For other ranges, generate daily data
+                LocalDate current = startDate;
+                while (!current.isAfter(endDate)) {
+                    long visitors = visitorsByDate.getOrDefault(current, Set.of()).size();
+                    long pageviews = pageviewsByDate.getOrDefault(current, 0L);
+                    timeSeries.add(new EnhancedAnalyticsResponse.DailyVisitorCount(current, visitors, pageviews));
+                    current = current.plusDays(1);
+                }
+                break;
+        }
+        
+        return timeSeries;
     }
     
     private EnhancedAnalyticsResponse createEmptyResponse(String siteId, String range) {
