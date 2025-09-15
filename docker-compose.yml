@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./AIHrefFrontend
+      dockerfile: Dockerfile
+    container_name: aihref-web
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:8080
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build:
+      context: ./AIHrefBackend
+      dockerfile: Dockerfile
+    container_name: aihref-backend
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_WEB_CORS_ALLOWED_ORIGINS=http://frontend:3000,https://aihref.com,https://www.aihref.com
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: aihref-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: aihref-cloudflared
+    restart: unless-stopped
+    command: tunnel run
+    volumes:
+      - ./cloudflared:/etc/cloudflared
+    depends_on:
+      - nginx

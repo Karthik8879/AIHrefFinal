@@ -1,0 +1,14 @@
+# Cloudflared configuration
+# Replace TUNNEL_ID with your actual tunnel ID
+tunnel: YOUR_TUNNEL_ID_HERE
+credentials-file: /etc/cloudflared/YOUR_TUNNEL_ID_HERE.json
+
+# Ingress rules
+ingress:
+  # Send all traffic to the nginx service
+  - hostname: aihref.com
+    service: http://nginx:80
+  - hostname: www.aihref.com
+    service: http://nginx:80
+  # Catch-all rule
+  - service: http_status:404

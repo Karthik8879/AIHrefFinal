@@ -1,0 +1,16 @@
+{
+  "name": "aihref-deployment",
+  "version": "1.0.0",
+  "description": "AIHref deployment configuration",
+  "scripts": {
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "restart": "docker-compose restart",
+    "logs": "docker-compose logs -f",
+    "build": "docker-compose build",
+    "rebuild": "docker-compose down && docker-compose build && docker-compose up -d"
+  },
+  "dependencies": {
+    "react-native-dotenv": "^3.4.11"
+  }
+}
