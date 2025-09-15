@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Navigation from "@/components/Navigation";
 
 export default function Home() {
   const sampleSites = [
@@ -10,6 +11,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Header */}
         <div className="text-center mb-12">

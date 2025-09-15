@@ -255,3 +255,87 @@ body {
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
 }
+
+/* Professional Header Styles */
+.nav-link {
+  position: relative;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary);
+  transition: width 0.3s ease-in-out;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+/* Professional Button Styles */
+.btn-nav {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease-in-out;
+  text-decoration: none;
+}
+
+.btn-nav:hover {
+  transform: translateY(-1px);
+}
+
+.btn-nav:active {
+  transform: translateY(0);
+}
+
+/* Professional Status Indicators */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-live {
+  background: rgba(34, 197, 94, 0.1);
+  color: rgb(34, 197, 94);
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.status-offline {
+  background: rgba(156, 163, 175, 0.1);
+  color: rgb(156, 163, 175);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+}
+
+/* Professional Logo Animation */
+.logo-hover {
+  transition: transform 0.3s ease-in-out;
+}
+
+.logo-hover:hover {
+  transform: scale(1.05) rotate(2deg);
+}
+
+/* Professional Navigation Shadows */
+.nav-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+.dark .nav-shadow {
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+}

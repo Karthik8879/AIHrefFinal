@@ -10,7 +10,7 @@ import {
 import AIHrefLoader from "@/components/AIHrefLoader";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import ErrorMessage from "@/components/ErrorMessage";
-import ThemeToggle from "@/components/ThemeToggle";
+import DashboardHeader from "@/components/DashboardHeader";
 import TrafficSummary from "@/components/TrafficSummary";
 import HighestPerformingSegments from "@/components/HighestPerformingSegments";
 import PerformanceOverTime from "@/components/PerformanceOverTime";
@@ -107,85 +107,15 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+      <DashboardHeader
+        siteId={siteId}
+        selectedRange={selectedRange}
+        onRangeChange={setSelectedRange}
+        onManualAggregation={handleManualAggregation}
+        isAggregating={isAggregating}
+        aggregationMessage={aggregationMessage}
+      />
       <div className="w-full p-4">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex justify-between items-start">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                Portfolio Analytics Dashboard
-              </h1>
-              <p className="text-gray-600 dark:text-gray-300 text-lg">
-                Site:{" "}
-                <span className="font-semibold text-blue-600 dark:text-blue-400">
-                  {siteId}
-                </span>
-              </p>
-            </div>
-
-            {/* Controls */}
-            <div className="flex flex-col space-y-4">
-              <div className="flex items-center space-x-4">
-                {/* Theme Toggle */}
-                <ThemeToggle />
-
-                {/* Time Range Selector */}
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Time Range:
-                  </span>
-                  <div className="flex space-x-1">
-                    {(["7d", "1m", "1y", "5y"] as const).map((range) => (
-                      <button
-                        key={range}
-                        onClick={() => setSelectedRange(range)}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${selectedRange === range
-                          ? "bg-blue-600 text-white shadow-lg transform scale-105"
-                          : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:border-blue-300"
-                          }`}
-                      >
-                        {range === "7d"
-                          ? "7D"
-                          : range === "1m"
-                            ? "1M"
-                            : range === "1y"
-                              ? "1Y"
-                              : "5Y"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Manual Aggregation Button */}
-              <button
-                onClick={handleManualAggregation}
-                disabled={isAggregating}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${isAggregating
-                  ? "bg-gray-400 text-white cursor-not-allowed"
-                  : "bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 shadow-lg hover:shadow-xl transform hover:scale-105"
-                  }`}
-              >
-                {isAggregating ? (
-                  <>
-                    <span className="animate-spin mr-2">⏳</span>
-                    Processing...
-                  </>
-                ) : (
-                  "🔄 Run Aggregation"
-                )}
-              </button>
-            </div>
-          </div>
-
-          {aggregationMessage && (
-            <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <div className="text-sm text-green-700 dark:text-green-300 font-medium">
-                ✅ {aggregationMessage}
-              </div>
-            </div>
-          )}
-        </div>
 
         <TrafficSummary analytics={analytics} />
 
