@@ -1,11 +1,13 @@
 package com.aihref.controller;
 
 import com.aihref.dto.EnhancedAnalyticsResponse;
+import com.aihref.dto.CombinedAnalyticsResponse;
 import com.aihref.model.DailySnapshot;
 import com.aihref.model.RawEvent;
 import com.aihref.repository.DailySnapshotRepository;
 import com.aihref.repository.RawEventRepository;
 import com.aihref.service.EnhancedAnalyticsService;
+import com.aihref.service.CombinedAnalyticsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +26,7 @@ import java.util.List;
 public class EnhancedAnalyticsController {
     
     private final EnhancedAnalyticsService enhancedAnalyticsService;
+    private final CombinedAnalyticsService combinedAnalyticsService;
     private final DailySnapshotRepository dailySnapshotRepository;
     private final RawEventRepository rawEventRepository;
     
@@ -47,6 +50,29 @@ public class EnhancedAnalyticsController {
             
         } catch (Exception e) {
             log.error("Error processing enhanced analytics request", e);
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/combined")
+    public ResponseEntity<CombinedAnalyticsResponse> getCombinedAnalytics(
+            @RequestParam(defaultValue = "7d") String range) {
+        
+        log.info("Received request for combined analytics - range: {}", range);
+        
+        try {
+            if (!isValidRange(range)) {
+                log.warn("Invalid range parameter: {}", range);
+                return ResponseEntity.badRequest().build();
+            }
+            
+            CombinedAnalyticsResponse response = combinedAnalyticsService.getCombinedAnalytics(range);
+            log.info("Successfully processed combined analytics request");
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Error processing combined analytics request", e);
             return ResponseEntity.internalServerError().build();
         }
     }

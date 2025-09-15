@@ -1,16 +1,24 @@
 "use client";
 
-import { CombinedAnalytics } from "@/lib/combined-analytics";
+import type { CombinedAnalytics } from "@/lib/combined-analytics";
 import MetricCard from "./MetricCard";
 import VisitorIcon from "./icons/VisitorIcon";
 import ClockIcon from "./icons/ClockIcon";
 import CalendarIcon from "./icons/CalendarIcon";
+import CombinedVisitorTrendsChart from "./CombinedVisitorTrendsChart";
+import CombinedCountriesChart from "./CombinedCountriesChart";
+import CombinedSourcesChart from "./CombinedSourcesChart";
 
 interface CombinedAnalyticsProps {
   analytics: CombinedAnalytics;
+  selectedRange?: "7d" | "1m" | "1y" | "5y";
 }
 
-export default function CombinedAnalytics({ analytics }: CombinedAnalyticsProps) {
+export default function CombinedAnalytics({ analytics, selectedRange = "7d" }: CombinedAnalyticsProps) {
+  console.log("CombinedAnalytics received data:", analytics);
+  console.log("Daily visitors:", analytics.dailyVisitors);
+  console.log("Sites:", analytics.sites);
+
   return (
     <div className="space-y-8">
       {/* Overview Metrics */}
@@ -98,6 +106,29 @@ export default function CombinedAnalytics({ analytics }: CombinedAnalyticsProps)
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Charts Section */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Analytics Charts</h2>
+
+        {/* Visitor Trends Chart */}
+        <div className="mb-8">
+          <CombinedVisitorTrendsChart analytics={analytics} selectedRange={selectedRange} />
+        </div>
+
+        {/* Charts Grid */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Countries Chart */}
+          <div>
+            <CombinedCountriesChart analytics={analytics} />
+          </div>
+
+          {/* Sources Chart */}
+          <div>
+            <CombinedSourcesChart analytics={analytics} />
+          </div>
         </div>
       </div>
 

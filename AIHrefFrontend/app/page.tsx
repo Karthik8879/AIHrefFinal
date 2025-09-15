@@ -109,7 +109,7 @@ export default function Home() {
         </div>
 
         {/* Combined Analytics */}
-        {analytics && <CombinedAnalytics analytics={analytics} />}
+        {analytics && <CombinedAnalytics analytics={analytics} selectedRange={selectedRange} />}
       </div>
     </div>
   );
